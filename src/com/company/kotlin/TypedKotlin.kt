@@ -2,25 +2,30 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.*
 
-open class Layout<T : LayoutProtocol>(val t: T){
+open class Layout<T : LayoutProtocol> protected constructor(val t: T) {
     fun getName(): String {
         return t.getName()
     }
 
     companion object {
-        inline fun <reified T: LayoutProtocol> create(instance: T): Layout<T> {
-            return object: Layout<T>(instance) {}
+        inline fun <reified T : LayoutProtocol> create(instance: T): Layout<T> {
+            return object : Layout<T>(t = instance) {}
         }
     }
 }
 
 open class TypeLiteral<T> {
     val type: Type = getSuperclassTypeParameter(this::class.java)
+
     companion object {
         fun getSuperclassTypeParameter(subclass: Class<*>) =
                 (subclass.genericSuperclass as ParameterizedType).actualTypeArguments[0]
     }
 }
+
+//fun main(args: Array<String>) {
+//    val t = Layout<Vertical> (Vertical())
+//}
 
 inline fun <reified R> Iterable<*>.genericFilterIsInstance() where R : Any =
         filterIsInstance<R>().filter { object : TypeLiteral<R>() {}.type == it::class.java.genericSuperclass }
@@ -76,14 +81,7 @@ fun <T : LayoutProtocol> Iterable<Layout<*>>.filter(clazz: Class<T>): Iterable<L
 }
 
 
-
-
-
-
-
-
-
-//fun <T : LayoutProtocol> Iterable<Layout<*>>.filterLayouts() = filter { it.t is T } as Iterable<Layout<T>>
+//fun <T : Orientation> Iterable<Layout<*>>.filterLayouts() = filter { it.t is T } as Iterable<Layout<T>>
 
 
 //private fun filterHorizontal(layouts: LinkedList<Layout<*>>): List<Layout<*>> {

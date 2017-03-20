@@ -1,30 +1,31 @@
 package com.company.typed;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.LinkedList;
-import java.util.List;
+class Layout<T extends LayoutProtocol> {
+    private final T t;
+    private boolean vertical;
 
-class Layout<T> {
+    public Layout(T t) {
+        this.t = t;
+    }
 
+    public boolean isVertical() {
+        return t instanceof Vertical;
+    }
 }
 
 interface LayoutProtocol {
-    default int c() {
-        return 42;
-    }
+    LayoutProtocol rotate();
 }
 
 class Vertical implements LayoutProtocol {
-    int a() {
-        return 1;
+    public Horizontal rotate() {
+        return new Horizontal();
     }
-
 }
 
 class Horizontal implements LayoutProtocol {
-    int b() {
-        return 2;
+    public Vertical rotate() {
+        return new Vertical();
     }
 }
 
@@ -32,9 +33,11 @@ class Main {
     public static void main(String[] args) {
 //        List<Horizontal> layouts = new LinkedList<>();
 //        List<Vertical> layouts = new LinkedList<>();
-        List<Layout<LayoutProtocol>> layouts = new LinkedList();
-        Layout<Horizontal> horizontalLayout = new Layout<>();
-        Layout<Vertical> verticalLayout = new Layout<>();
+//        List<Layout<LayoutProtocol>> layouts = new LinkedList();
+        Layout<Horizontal> horizontalLayout = new Layout<>(new Horizontal());
+        Layout<Vertical> verticalLayout = new Layout<>(new Vertical());
+
+
 //        layouts.add(horizontalLayout);
 //        layouts.add(verticalLayout);
 //        filterVerticals(layouts);

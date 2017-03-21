@@ -1,37 +1,72 @@
 package com.company.kotlin
 
-class Layout<out T : Orientation>(val t: T) {
+fun main(args: Array<String>) {
+    val horizontal = Layout(Horizontal)
+    val vertical = Layout(Vertical)
 
+    // Type safe rotation!
+    var v: Layout<Vertical> = horizontal.rotate()
+    var h: Layout<Horizontal> = vertical.rotate()
+    h = horizontal.rotate().rotate()
+    v = vertical.rotate().rotate()
+
+    /* Does not compile!
+    v = horizontal.rotate().rotate()
+    h = vertical.rotate().rotate()
+    */
+
+    println("Horizontal rotated is " + v)
+    println("Vertical rotated is " + h)
 }
 
 interface Orientation {
     fun rotate(): Orientation
 }
 
-class Vertical : Orientation {
-    override fun rotate() = Horizontal()
-    override fun toString(): String {
-        return "Vertical"
+object Vertical : Orientation {
+    override fun rotate() = Horizontal
+    override fun toString() = "Vertical"
+}
+
+object Horizontal : Orientation {
+    override fun rotate() = Vertical
+    override fun toString() = "Horizontal"
+}
+
+@JvmName("rotateVertical")
+fun Layout<Horizontal>.rotate() = Layout<Vertical>(this.t.rotate())
+
+@JvmName("rotateHorizontal")
+fun Layout<Vertical>.rotate() = Layout<Horizontal>(this.t.rotate())
+
+class Layout<out T : Orientation>(val t: T) {
+    override fun toString() = t.toString()
+}
+
+open class Builder<out T : Layout<*>> {
+    open fun build(): T = build()
+}
+
+open class Renderer<in T> {
+    open fun render(t: T) {
+        println(t)
     }
 }
 
-class Horizontal : Orientation {
-    override fun rotate() = Vertical()
-    override fun toString(): String {
-        return "Horizontal"
-    }
+fun covariance(horizontalBuilder: Builder<Layout<Horizontal>>,
+               layoutBuilder: Builder<Layout<Orientation>>) {
+    // Layout<Horizontal> is a subtype of Layout<Orientation> ✓
+    val bldr: Builder<Layout<Orientation>> = horizontalBuilder
+
+    // Layout<Orientation> is a supertype of Layout<Horizontal> ✗
+    // val hlbr: Builder<Layout<Horizontal>> = layoutBuilder //ERROR
 }
 
-fun main(args: Array<String>) {
-    val horizontal: Layout<Horizontal> = Layout<Horizontal>(Horizontal())
-    val vertical: Layout<Vertical> = Layout<Vertical>(Vertical())
+fun contrav(layoutRenderer: Renderer<Layout<Orientation>>,
+             horizontalRenderer: Renderer<Layout<Horizontal>>) {
+    // Layout<Orientation> is a supertype of Layout<Horizontal> ✓
+    val hlrd: Renderer<Layout<Horizontal>> = layoutRenderer
 
-
-    val vert: Vertical = horizontal.rotate()
-    val horz: Horizontal = vertical.rotate()
-    println("Horizontal rotated is " + vert)
-    println("Vertical rotated is " + horz)
+    // Layout<Horizontal> is a subtype of Layout<Orientation> ✗
+    // val lrdr: Renderer<Layout<Orientation>> = horizontalRenderer
 }
-
-fun Layout<Horizontal>.rotate(): Vertical = this.t.rotate()
-fun Layout<Vertical>.rotate(): Horizontal = this.t.rotate()
